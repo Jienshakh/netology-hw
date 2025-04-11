@@ -24,7 +24,11 @@
 
 ### Задание 1
 
-https://github.com/Jienshakh/netology_git/commit/402a63dcb3fb5acb6ce30f1e5c35ab273b946ee7
+![cli_configure](./img/cli_configure.jpg)
+![jenkins_configure1](./img/jenkins_configure1.jpg)
+![jenkins_configure2](./img/jenkins_configure2.jpg)
+![jenkins_logs](./img/jenkins_logs.jpg)
+![nexus_artifact](./img/nexus_artifact.jpg)
 
 ---
 
