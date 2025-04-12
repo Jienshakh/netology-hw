@@ -249,5 +249,5 @@ ok  	github.com/netology-code/sdvps-materials	0.004s
 [Pipeline] End of Pipeline
 Finished: SUCCESS
 ```
-
+**Скрин артефакта в Nexus**
 ![nexus_artifact_ex3](./img/nexus_artifact_ex3.jpg)
