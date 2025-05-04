@@ -1,4 +1,4 @@
-# Домашнее задание к занятию "`Название занятия`" - `Фамилия и имя студента`
+# Домашнее задание к занятию "`Система мониторинга Zabbix`" - `Одинаев Джиеншах`
 
 
 ### Инструкция по выполнению домашнего задания
@@ -24,94 +24,81 @@
 
 ### Задание 1
 
-`Приведите ответ в свободной форме........`
 
-1. `Заполните здесь этапы выполнения, если требуется ....`
-2. `Заполните здесь этапы выполнения, если требуется ....`
-3. `Заполните здесь этапы выполнения, если требуется ....`
-4. `Заполните здесь этапы выполнения, если требуется ....`
-5. `Заполните здесь этапы выполнения, если требуется ....`
-6. 
+1. Прикрепите в файл README.md скриншот авторизации в админке
+
+![скриншот_авторизации_в_админке](./img/zabbix_ex1.PNG)`
+
+2. Приложите в файл README.md текст использованных команд в GitHub.
 
 ```
-Поле для вставки кода...
-....
-....
-....
-....
+sudo dnf module disable postgresql:10
+sudo dnf module enable postgresql:13
+dnf install postgresql
+dnf install postgresql-server
+postgresql-setup --initdb
+systemctl start postgresql
+systemctl enable postgresql
+rpm -Uvh https://repo.zabbix.com/zabbix/6.0/rhel/8/x86_64/zabbix-release-latest-6.0.el8.noarch.rpm
+dnf clean all
+dnf install zabbix-server-pgsql zabbix-web-pgsql zabbix-apache-conf zabbix-sql-scripts zabbix-selinux-policy
+su - postgres -c 'psql --command "CREATE USER zabbix WITH PASSWORD '\'123456789\'';"'
+su - postgres -c 'psql --command "CREATE DATABASE zabbix OWNER zabbix;"
+zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | sudo -u zabbix psql zabbix
+sed -i 's/# DBPassword=/DBPassword=123456789/g' /etc/zabbix/zabbix_server.conf
+systemctl restart zabbix-server httpd php-fpm
+systemctl status zabbix-server
+firewall-cmd --permanent --add-service=http
+firewall-cmd --reload
+firewall-cmd --permanent --add-port=5432/tcp
+firewall-cmd --reload
+sed -i 's/# listen_addresses = 'localhost'/listen_addresses = '*'/g' /var/lib/pgsql/data/postgresql.conf
 ```
 
-`При необходимости прикрепитe сюда скриншоты
-![Название скриншота 1](ссылка на скриншот 1)`
+В файл `/var/lib/pgsql/data/pg_hba.conf` внес изменения. 
+Было:
 
+```
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            ident
+# IPv6 local connections:
+host    all             all             ::1/128                 ident
+
+```
+
+Стало:
+
+```
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            md5
+host    all             all             192.168.0.0/24          md5
+# IPv6 local connections:
+host    all             all             ::1/128                 md5
+```
 
 ---
 
 ### Задание 2
 
-`Приведите ответ в свободной форме........`
-
-1. `Заполните здесь этапы выполнения, если требуется ....`
-2. `Заполните здесь этапы выполнения, если требуется ....`
-3. `Заполните здесь этапы выполнения, если требуется ....`
-4. `Заполните здесь этапы выполнения, если требуется ....`
-5. `Заполните здесь этапы выполнения, если требуется ....`
-6. 
+1. Приложите в файл README.md скриншот раздела Configuration > Hosts, где видно, что агенты подключены к серверу
+![скриншот_раздела_Configuration](./img/zabbix_ex2_1.PNG)`
+2. Приложите в файл README.md скриншот лога zabbix agent, где видно, что он работает с сервером
+![скриншот_лога_zabbix_agent](./img/zabbix_ex2_2.PNG)`
+3. Приложите в файл README.md скриншот раздела Monitoring > Latest data для обоих хостов, где видны поступающие от агентов данные.
+![скриншот_раздела_Monitoring](./img/zabbix_ex2_3.PNG)`
+4. Приложите в файл README.md текст использованных команд в GitHub
 
 ```
-Поле для вставки кода...
-....
-....
-....
-....
+rpm -Uvh https://repo.zabbix.com/zabbix/6.0/rhel/8/x86_64/zabbix-release-latest-6.0.el8.noarch.rpm
+dnf clean all
+dnf install zabbix-agent
+systemctl restart zabbix-agent
+systemctl enable zabbix-agent
+sed -i 's/Server=127.0.0.1/Server=192.168.0.110/g' /etc/zabbix/zabbix-agentd.conf
+firewall-cmd --permanent --add-port=10050/tcp
+firewall-cmd --reload
+systemctl restart zabbix-agent
 ```
-
-`При необходимости прикрепитe сюда скриншоты
-![Название скриншота 2](ссылка на скриншот 2)`
-
 
 ---
 
-### Задание 3
-
-`Приведите ответ в свободной форме........`
-
-1. `Заполните здесь этапы выполнения, если требуется ....`
-2. `Заполните здесь этапы выполнения, если требуется ....`
-3. `Заполните здесь этапы выполнения, если требуется ....`
-4. `Заполните здесь этапы выполнения, если требуется ....`
-5. `Заполните здесь этапы выполнения, если требуется ....`
-6. 
-
-```
-Поле для вставки кода...
-....
-....
-....
-....
-```
-
-`При необходимости прикрепитe сюда скриншоты
-![Название скриншота](ссылка на скриншот)`
-
-### Задание 4
-
-`Приведите ответ в свободной форме........`
-
-1. `Заполните здесь этапы выполнения, если требуется ....`
-2. `Заполните здесь этапы выполнения, если требуется ....`
-3. `Заполните здесь этапы выполнения, если требуется ....`
-4. `Заполните здесь этапы выполнения, если требуется ....`
-5. `Заполните здесь этапы выполнения, если требуется ....`
-6. 
-
-```
-Поле для вставки кода...
-....
-....
-....
-....
-```
-
-`При необходимости прикрепитe сюда скриншоты
-![Название скриншота](ссылка на скриншот)`
