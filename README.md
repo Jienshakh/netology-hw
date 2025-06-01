@@ -8,7 +8,7 @@
 - На проверку отправьте получившуюся схему в формате pkt и скриншот, где виден процесс настройки маршрутизатора.
 ![Задание_1_screen](./img/Disaster_recovery_Keepalived_ex1.png)
 
-[Задание_1_file](./upload/hsrp_advanced_done.pkt)
+[Схема](./upload/hsrp_advanced_done.pkt)
 ------
 
 
