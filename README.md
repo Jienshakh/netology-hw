@@ -6,8 +6,9 @@
 - Необходимо аналогично настроить отслеживание состояния интерфейсов Gi0/0 (для первой группы).
 - Для проверки корректности настройки, разорвите один из кабелей между одним из маршрутизаторов и Switch0 и запустите ping между PC0 и Server0.
 - На проверку отправьте получившуюся схему в формате pkt и скриншот, где виден процесс настройки маршрутизатора.
-![Задание_1_screen](./img/Disaster_recovery_Keepalived_ex1.png)`
-![Задание_1_file](./upload/hsrp_advanced_done.pkt)`
+![Задание_1_screen](./img/Disaster_recovery_Keepalived_ex1.png)
+
+[Задание_1_file](./upload/hsrp_advanced_done.pkt)
 ------
 
 
@@ -115,5 +116,5 @@ fi
 
 ```
 
-![Задание_2_screen](./img/Disaster_recovery_Keepalived_ex2.png)`
+![Задание_2_screen](./img/Disaster_recovery_Keepalived_ex2.png)
 ------
