@@ -39,7 +39,7 @@
 - Резервная копия размещается локально, в директории `/tmp/backup`
 - На проверку направить файл crontab и скриншот с результатом работы утилиты.
 
-Т.к. не совсем понятно что значит "файл crontab", то прикладываю файл из директории [/var/log/cron/crontab](./scripts/rsync_backup_homedir.sh) и [скрипт](./scripts/jien)
+Т.к. не совсем понятно что значит "файл crontab", то прикладываю файл из директории [/var/log/cron/crontab](./scripts/jien) и [скрипт](./scripts/rsync_backup_homedir.sh)
 
 ![Задание_2_screen](./img/backup_ex2.png)
 ---
