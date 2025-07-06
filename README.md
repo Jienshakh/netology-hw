@@ -81,7 +81,9 @@ $ cat /etc/hosts
 $ rabbitmqctl cluster_status
 ```
 [Вывод rabbitmqctl cluster_status на rabbitmq1](./logs/rabbitmq1.txt)
+
 [Вывод rabbitmqctl cluster_status на rabbitmq2](./logs/rabbitmq2.txt)
+
 Для закрепления материала снова запустите скрипт producer.py и приложите скриншот выполнения команды на каждой из нод:
 
 ```shell script
