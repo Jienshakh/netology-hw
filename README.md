@@ -64,7 +64,6 @@ where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and
 Оптимизированный запрос:
 
 ```sql
-EXPLAIN ANALYZE
 SELECT 
     CONCAT(c.last_name, ' ', c.first_name) AS customer_name,
     SUM(p.amount) AS total_payment
