@@ -42,18 +42,26 @@ Master-Master — более отказоустойчивый и масштаб�
 *Приложите скриншоты конфигурации, выполнения работы: состояния и режимы работы серверов.*
 
 ---
-
-![master_cnf](img/master_cnf.PNG);
-![slave_cnf](img/slave_cnf.PNG);
+Файл /etc/my.cnf на master
+![master_cnf](img/master_cnf.PNG)
+Файл /etc/my.cnf на slave
+![slave_cnf](img/slave_cnf.PNG)
+Статус мастера
 ![master_status](img/master_status.PNG);
-![change_master_for_replica](img/change_master_for_replica.PNG);
-![slave_status](img/slave_status.PNG);
-![docker_network](img/docker_network.PNG);
-![sysbench_prepare](img/sysbench_prepare.PNG);
-![sysbench_run](img/sysbench_run.PNG);
-![generated_data](img/generated_data.PNG);
+Указваем реплике мастера и данные File и Position 
+![change_master_for_replica](img/change_master_for_replica.PNG)
+Статус slave
+![slave_status](img/slave_status.PNG)
+Смотрим Ip адрес мастера в docker network. Эту часть выполнил из любопытсва, в задании не указано
+![docker_network](img/docker_network.PNG)
+Настраиваем утилиту sysbensh для запуска тестовой нагрузки
+![sysbench_prepare](img/sysbench_prepare.PNG)
+Запускаем тестовую нагрузку
+![sysbench_run](img/sysbench_run.PNG)
+Смотрим сгененировнные данные на реплике
+![generated_data](img/generated_data.PNG)
 
-[Список команд](bash_commands.txt);
+[Список команд](bash_commands.txt)
 
 
 ## Дополнительные задания (со звёздочкой*)
