@@ -47,18 +47,18 @@ Master-Master — более отказоустойчивый и масштаб�
 Файл /etc/my.cnf на slave
 ![slave_cnf](img/slave_cnf.PNG)
 Статус мастера
-![master_status](img/master_status.PNG);
-Указваем реплике мастера и данные File и Position 
+![master_status](img/master_status.PNG)
+Указываем реплике мастера и данные File и Position 
 ![change_master_for_replica](img/change_master_for_replica.PNG)
 Статус slave
 ![slave_status](img/slave_status.PNG)
-Смотрим Ip адрес мастера в docker network. Эту часть выполнил из любопытсва, в задании не указано
+Смотрим Ip адрес мастера в docker network. Эту часть выполнил из любопытства, в задании не указано
 ![docker_network](img/docker_network.PNG)
 Настраиваем утилиту sysbensh для запуска тестовой нагрузки
 ![sysbench_prepare](img/sysbench_prepare.PNG)
 Запускаем тестовую нагрузку
 ![sysbench_run](img/sysbench_run.PNG)
-Смотрим сгененировнные данные на реплике
+Смотрим сгенерированные  данные на реплике
 ![generated_data](img/generated_data.PNG)
 
 [Список команд](bash_commands.txt)
