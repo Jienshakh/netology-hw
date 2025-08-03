@@ -1,0 +1,352 @@
+$ docker run --name replication-master -e MYSQL_ROOT_PASSWORD=jien -d mysql:8.3
+$ docker run --name replication-slave -e MYSQL_ROOT_PASSWORD=jien -d mysql:8.3
+$ docker network create replication
+$ docker network connect replication replication-master
+$ docker network connect replication replication-slave
+$ docker network inspect replication
+$ docker exec -it replication-master mysql -uroot -pjien
+mysql> CREATE USER 'replication'@'%';
+mysql> GRANT REPLICATION SLAVE ON *.* TO 'replication'@'%';
+mysql> SHOW GRANTS FOR 'replication'@'%';
+$ docker cp replication-master:/etc/my.cnf master.cnf
+$ vim master.cnf
+
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/8.3/en/server-configuration-defaults.html
+
+[mysqld]
+server_id=1
+bind-address=0.0.0.0 # чтобы запустить тестовую нагрузку sysbench разрешил подключение со всех адресов
+#
+# Remove leading # and set to the amount of RAM for the most important data
+# cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.
+# innodb_buffer_pool_size = 128M
+#
+# Remove leading # to turn on a very important data integrity option: logging
+# changes to the binary log between backups.
+log_bin
+#
+# Remove leading # to set options mainly useful for reporting servers.
+# The server defaults are faster for transactions and fast SELECTs.
+# Adjust sizes as needed, experiment to find the optimal values.
+# join_buffer_size = 128M
+# sort_buffer_size = 2M
+# read_rnd_buffer_size = 2M
+
+# Remove leading # to revert to previous value for default_authentication_plugin,
+# this will increase compatibility with older clients. For background, see:
+# https://dev.mysql.com/doc/refman/8.3/en/server-system-variables.html#sysvar_default_authentication_plugin
+# default-authentication-plugin=mysql_native_password
+host-cache-size=0
+skip-name-resolve
+datadir=/var/lib/mysql
+socket=/var/run/mysqld/mysqld.sock
+secure-file-priv=/var/lib/mysql-files
+user=mysql
+
+pid-file=/var/run/mysqld/mysqld.pid
+[client]
+socket=/var/run/mysqld/mysqld.sock
+
+!includedir /etc/mysql/conf.d/
+
+$ docker cp master.cnf replication-master:/etc/my.cnf
+$ docker restart replication-master
+$ docker exec -it replication-master mysql -uroot -pjien
+
+mysql> show master status;
++-------------------------+----------+--------------+------------------+-------------------+
+| File                    | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++-------------------------+----------+--------------+------------------+-------------------+
+| 18f5bad612d4-bin.000001 |      158 |              |                  |                   |
++-------------------------+----------+--------------+------------------+-------------------+
+1 row in set, 1 warning (0.00 sec)
+
+$ docker cp replication-slave:/etc/my.cnf slave.cnf
+$ vim slave.cnf
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/8.3/en/server-configuration-defaults.html
+
+[mysqld]
+server_id=2
+read_only=true
+relay-log = /var/lib/mysql/mysql-relay-bin
+relay-log-index = /var/lib/mysql/mysql-relay-bin.index
+#
+# Remove leading # and set to the amount of RAM for the most important data
+# cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.
+# innodb_buffer_pool_size = 128M
+#
+# Remove leading # to turn on a very important data integrity option: logging
+# changes to the binary log between backups.
+log_bin
+#
+# Remove leading # to set options mainly useful for reporting servers.
+# The server defaults are faster for transactions and fast SELECTs.
+# Adjust sizes as needed, experiment to find the optimal values.
+# join_buffer_size = 128M
+# sort_buffer_size = 2M
+# read_rnd_buffer_size = 2M
+
+# Remove leading # to revert to previous value for default_authentication_plugin,
+# this will increase compatibility with older clients. For background, see:
+# https://dev.mysql.com/doc/refman/8.3/en/server-system-variables.html#sysvar_default_authentication_plugin
+# default-authentication-plugin=mysql_native_password
+host-cache-size=0
+skip-name-resolve
+datadir=/var/lib/mysql
+socket=/var/run/mysqld/mysqld.sock
+secure-file-priv=/var/lib/mysql-files
+user=mysql
+
+pid-file=/var/run/mysqld/mysqld.pid
+[client]
+socket=/var/run/mysqld/mysqld.sock
+
+!includedir /etc/mysql/conf.d/
+
+$ docker cp slave.cnf replication-slave:/etc/my.cnf
+$ docker restart replication-slave
+$ docker exec -it replication-slave mysql -uroot -pjien
+
+mysql> CHANGE MASTER TO MASTER_HOST='replication-master', MASTER_USER='replication', MASTER_LOG_FILE='18f5bad612d4-bin.000001', MASTER_LOG_POS=158;
+Query OK, 0 rows affected, 7 warnings (0.05 sec)
+
+mysql> start slave;
+Query OK, 0 rows affected, 1 warning (0.03 sec)
+
+mysql> show slave status\G;
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for source to send event
+                  Master_Host: replication-master
+                  Master_User: replication
+                  Master_Port: 3306
+                Connect_Retry: 60
+              Master_Log_File: 18f5bad612d4-bin.000001
+          Read_Master_Log_Pos: 158
+               Relay_Log_File: mysql-relay-bin.000002
+                Relay_Log_Pos: 335
+        Relay_Master_Log_File: 18f5bad612d4-bin.000001
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+              Replicate_Do_DB:
+          Replicate_Ignore_DB:
+           Replicate_Do_Table:
+       Replicate_Ignore_Table:
+      Replicate_Wild_Do_Table:
+  Replicate_Wild_Ignore_Table:
+                   Last_Errno: 0
+                   Last_Error:
+                 Skip_Counter: 0
+          Exec_Master_Log_Pos: 158
+              Relay_Log_Space: 546
+              Until_Condition: None
+               Until_Log_File:
+                Until_Log_Pos: 0
+           Master_SSL_Allowed: No
+           Master_SSL_CA_File:
+           Master_SSL_CA_Path:
+              Master_SSL_Cert:
+            Master_SSL_Cipher:
+               Master_SSL_Key:
+        Seconds_Behind_Master: 0
+Master_SSL_Verify_Server_Cert: No
+                Last_IO_Errno: 0
+                Last_IO_Error:
+               Last_SQL_Errno: 0
+               Last_SQL_Error:
+  Replicate_Ignore_Server_Ids:
+             Master_Server_Id: 1
+                  Master_UUID: 9466eb31-701a-11f0-857d-0242ac110002
+             Master_Info_File: mysql.slave_master_info
+                    SQL_Delay: 0
+          SQL_Remaining_Delay: NULL
+      Slave_SQL_Running_State: Replica has read all relay log; waiting for more updates
+           Master_Retry_Count: 10
+                  Master_Bind:
+      Last_IO_Error_Timestamp:
+     Last_SQL_Error_Timestamp:
+               Master_SSL_Crl:
+           Master_SSL_Crlpath:
+           Retrieved_Gtid_Set:
+            Executed_Gtid_Set:
+                Auto_Position: 0
+         Replicate_Rewrite_DB:
+                 Channel_Name:
+           Master_TLS_Version:
+       Master_public_key_path:
+        Get_master_public_key: 0
+            Network_Namespace:
+1 row in set, 1 warning (0.00 sec)
+
+$ sudo yum install -y sysbench
+$ mysql -uroot -pjien -h 172.18.0.2 -P 3306 # Очевидно, чтобы подключаться так, нужно установить mysql 
+
+mysql> CREATE DATABASE test;
+Query OK, 1 row affected (0.01 sec)
+
+mysql> exit;
+
+$ sysbench \
+  --db-driver=mysql \
+  --mysql-host=172.18.0.2 \
+  --mysql-port=3306 \
+  --mysql-user=root \
+  --mysql-password=jien \
+  --mysql-db=test \
+  --table-size=100000 \
+  --tables=10 \
+  --threads=4 \
+  --time=300 \
+  --report-interval=10 \
+  oltp_read_write \
+  prepare  # сначала создает тестовые таблицы
+
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Initializing worker threads...
+
+Creating table 'sbtest3'...
+Creating table 'sbtest2'...
+Creating table 'sbtest1'...
+Creating table 'sbtest4'...
+Inserting 100000 records into 'sbtest2'
+Inserting 100000 records into 'sbtest1'
+Inserting 100000 records into 'sbtest4'
+Inserting 100000 records into 'sbtest3'
+Creating a secondary index on 'sbtest1'...
+Creating a secondary index on 'sbtest3'...
+Creating a secondary index on 'sbtest2'...
+Creating a secondary index on 'sbtest4'...
+Creating table 'sbtest5'...
+Inserting 100000 records into 'sbtest5'
+Creating table 'sbtest6'...
+Creating table 'sbtest8'...
+Creating table 'sbtest7'...
+Inserting 100000 records into 'sbtest6'
+Inserting 100000 records into 'sbtest8'
+Inserting 100000 records into 'sbtest7'
+Creating a secondary index on 'sbtest5'...
+Creating a secondary index on 'sbtest8'...
+Creating a secondary index on 'sbtest7'...
+Creating a secondary index on 'sbtest6'...
+Creating table 'sbtest9'...
+Inserting 100000 records into 'sbtest9'
+Creating table 'sbtest10'...
+Inserting 100000 records into 'sbtest10'
+Creating a secondary index on 'sbtest9'...
+Creating a secondary index on 'sbtest10'...
+
+$ sysbench \
+  --db-driver=mysql \
+  --mysql-host=172.18.0.2 \
+  --mysql-port=3306 \
+  --mysql-user=root \
+  --mysql-password=jien \
+  --mysql-db=test \
+  --threads=8 \ # --threads=8 — количество параллельных потоков
+  --time=600 \ # --time=600 — продолжительность теста (секунды).
+  oltp_read_write \ # oltp_read_write — тест на чтение и запись.
+  run  # запускает нагрузку
+
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 8
+Initializing random number generator from current time
+
+
+Initializing worker threads...
+
+Threads started!
+
+SQL statistics:
+    queries performed:
+        read:                            1124102
+        write:                           321121
+        other:                           160567
+        total:                           1605790
+    transactions:                        80274  (133.78 per sec.)
+    queries:                             1605790 (2676.09 per sec.)
+    ignored errors:                      19     (0.03 per sec.)
+    reconnects:                          0      (0.00 per sec.)
+
+General statistics:
+    total time:                          600.0494s
+    total number of events:              80274
+
+Latency (ms):
+         min:                                   22.96
+         avg:                                   59.78
+         max:                                 1699.20
+         95th percentile:                       92.42
+         sum:                              4798730.41
+
+Threads fairness:
+    events (avg/stddev):           10034.2500/37.11
+    execution time (avg/stddev):   599.8413/0.01
+
+
+# Сразу после запуска предыдущей команды, которая будет выполняться 10 минут открываем новый терминал и смотрим в реплику  
+
+$ docker exec -ti replication-slave mysql -uroot -pjien
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
+| test               |
++--------------------+
+5 rows in set (0.05 sec)
+
+mysql> use test;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> show tables;
++----------------+
+| Tables_in_test |
++----------------+
+| sbtest1        |
+| sbtest10       |
+| sbtest2        |
+| sbtest3        |
+| sbtest4        |
+| sbtest5        |
+| sbtest6        |
+| sbtest7        |
+| sbtest8        |
+| sbtest9        |
++----------------+
+10 rows in set (0.01 sec)
+mysql> select * from sbtest1 Limit 10;
++-----+-------+-------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------+
+| id  | k     | c                                                                                                                       | pad                                                         |
++-----+-------+-------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------+
+|   1 | 49867 | 31451373586-15688153734-79729593694-96509299839-83724898275-86711833539-78981337422-35049690573-51724173961-87474696253 | 98996621624-36689827414-04092488557-09587706818-65008859162 |
+|   2 | 49778 | 21472970079-70972780322-70018558993-71769650003-09270326047-32417012031-10768856803-14235120402-93989080412-18690312264 | 04776826683-45880822084-77922711547-29057964468-76514263618 |
+|   3 | 49896 | 49376827441-24903985029-56844662308-79012577859-40518387141-60588419212-24399130405-42612257832-29494881732-71506024440 | 26843035807-96849339132-53943793991-69741192222-48634174017 |
+|   4 | 51873 | 85762858421-36258200885-10758669419-44272723583-12529521893-95630803635-53907705724-07005352902-43001596772-53048338959 | 37979424284-37912826784-31868864947-42903702727-96097885121 |
+|   5 | 50249 | 24805466175-85245528617-94635882649-46305216925-28637832581-03224489581-68883711727-95491561683-91969681472-12022277774 | 19288959552-55556468076-14192290426-55457672510-18043372364 |
+|   6 | 50078 | 52892836230-54177743992-01821871718-48412537487-30066596248-87215430797-00375777469-64498831720-58542556455-90784765418 | 59487960480-08453890592-99628797439-16757639138-29377916560 |
+|   7 | 50147 | 85820931248-14475640036-11980694501-86588543167-31029306229-09626867980-90685354565-02350460358-25863585366-53793794448 | 26081374730-86321700986-51212137094-30635959762-03880194434 |
+|   8 | 49784 | 81578049255-33453976301-67096870761-27658738403-30546242249-53677469854-26594573136-34292002037-52736825353-99165193170 | 64289062455-51067794311-09919261228-11533354367-07401173317 |
+|   9 | 49960 | 02844262904-89815504820-46476698406-25828746135-14201395324-78201250152-94654394113-77666987600-97276171313-77528982779 | 38215684217-21734504182-35952570785-14195084201-48480769869 |
+|  10 | 50208 | 97328342601-71824008952-54729156366-83779846831-37468898769-13751731186-67580932554-91224999471-66663428022-34718145712 | 37644271647-60590471315-45351101261-85468092849-08838304303 |
++-----+-------+-------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------+
+10 rows in set (0.00 sec)
+
+$ 
+$ 
+$ 
+$ 
+$ 
+$ 
+$ 
+$ 
+$ 
