@@ -68,10 +68,16 @@
 
 - vsftpd 2.3.4 - Backdoor Command Execution
   - https://www.exploit-db.com/exploits/17491
+
 - UnrealIRCd 3.2.8.1 - Backdoor Command Execution
   - https://www.exploit-db.com/exploits/16922
+root@metasploitable:~# unrealircd -v
+Unreal3.2.8.1 build 1.1.1.1.2.26 2009/04/13 11:03:55
+
 - Samba "username map script" Command Execution
   - https://www.exploit-db.com/exploits/16320
+root@metasploitable:~# unrealircd -v
+Unreal3.2.8.1 build 1.1.1.1.2.26 2009/04/13 11:03:55
 
 
 ### Задание 2
@@ -87,5 +93,30 @@
 
 *Приведите ответ в свободной форме.*
 
+**1. Чем отличаются эти режимы сканирования с точки зрения сетевого трафика?**
 
-![Название скриншота](ссылка на скриншот)
+- SYN: Отправляются пакеты с флагом SYN.
+
+- FIN: Отправляются пакеты с флагом FIN.
+
+- Xmas: Отправляются пакеты с флагами FIN, PSH, URG (в колонке "Info" Wireshark они будут помечены как FIN, PSH, URG).
+
+- UDP: Отправляются не TCP-пакеты, а UDP-датаграммы. Для них в Wireshark будет указан протокол UDP.
+
+**2. Как отвечает сервер?**
+
+- На SYN-запрос: Открытый порт отвечает SYN-ACK, закрытый — RST-ACK.
+
+[Wireshark](./upload/syn.pcapng)
+
+- На FIN-запрос: Открытый порт молчит (нет ответа), закрытый порт отвечает RST.
+
+[Wireshark](./upload/fin.pcapng)
+
+- На Xmas-запрос: Аналогично FIN-сканированию. Открытый порт молчит, закрытый отвечает RST.
+
+[Wireshark](./upload/Xmas.pcapng)
+
+- На UDP-запрос: Если сервис работает, он может ответить UDP-пакетом (часто с ошибкой, т.к. запрос пустой). Если порт закрыт, сервер шлет ICMP-пакет с ошибкой Destination unreachable (Port unreachable).
+
+[Wireshark](./upload/udp.pcapng)
